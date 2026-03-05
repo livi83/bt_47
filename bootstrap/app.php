@@ -1,0 +1,22 @@
+<?php
+
+use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Foundation\Configuration\Middleware;
+
+return Application::configure(basePath: dirname(__DIR__))
+    //definuje súbor s routes
+    ->withRouting(
+        web: __DIR__.'/../routes/web.php',
+        commands: __DIR__.'/../routes/console.php',
+        health: '/up',
+    )
+    //middleware konfiguracia
+    ->withMiddleware(function (Middleware $middleware): void {
+        //
+    })
+    //konfiguracia vynimiek
+    ->withExceptions(function (Exceptions $exceptions): void {
+        //
+    //vytvori a vrati hotovu Application instanciu
+    })->create();
