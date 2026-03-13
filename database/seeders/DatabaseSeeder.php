@@ -25,7 +25,7 @@ class DatabaseSeeder extends Seeder
 
         // 3. Vytvoríme články
         Post::factory(30)->create();
-;
+
         $categories = Category::all();
 
         // Vytvor 30 článkov a každému priraď 3 náhodné kategórie, ktoré už existujú
