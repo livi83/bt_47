@@ -12,6 +12,7 @@ class Category extends Model
     // Hromadné priradenie (povolené polia)
     protected $fillable = ['name', 'slug'];
 
+    
     // Vzťah k článkom (M:N)
     public function posts()
     {

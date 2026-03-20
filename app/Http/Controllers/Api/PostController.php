@@ -2,83 +2,106 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
+use App\Models\Post;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
-class PostController
+class PostController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    private array $posts = [
-        [
-            'id' => 1,
-            'title' => 'Laravel API zaklady',
-            'content' => 'Toto je ukazkovy clanok o Laravel API.',
-            'category_id' => 2,
-            'author_id' => 1,
-        ],
-        [
-            'id' => 2,
-            'title' => 'Co je MVC',
-            'content' => 'MVC je architektonicky vzor.',
-            'category_id' => 2,
-            'author_id' => 2,
-        ],
-    ];
-
     public function index()
     {
-        return response()->json($this->posts);
+        $posts = Post::with(['author', 'categories'])->latest()->get();
+
+        return response()->json($posts);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        return response()->json([
-            'message' => 'Post bol vytvoreny',
-            'received_data' => $request->all(),
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'slug' => 'required|string|max:255|unique:posts,slug',
+            'content' => 'required|string',
+            'image_path' => 'nullable|string|max:255',
+            'author_id' => 'required|exists:users,id',
+            'is_published' => 'nullable|boolean',
+            'published_at' => 'nullable|date',
+            'categories' => 'nullable|array',
+            'categories.*' => 'exists:categories,id',
         ]);
-    }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        foreach ($this->posts as $post) {
-            if ($post['id'] == $id) {
-                return response()->json($post);
-            }
+        $post = Post::create([
+            'title' => $validated['title'],
+            'slug' => $validated['slug'],
+            'content' => $validated['content'],
+            'image_path' => $validated['image_path'] ?? null,
+            'author_id' => $validated['author_id'],
+            'is_published' => $validated['is_published'] ?? false,
+            'published_at' => $validated['published_at'] ?? null,
+        ]);
+
+        if (!empty($validated['categories'])) {
+            $post->categories()->sync($validated['categories']);
         }
 
-        return response()->json([
-            'message' => 'Post nebol najdeny'
-        ], 404);
-
+        return response()->json(
+            $post->load(['author', 'categories']),
+            201
+        );
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function show(Post $post)
     {
-        return response()->json([
-            'message' => "Post s ID $id bol aktualizovany",
-            'updated_data' => $request->all(),
-        ]);
-
+        return response()->json(
+            $post->load(['author', 'categories'])
+        );
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    public function update(Request $request, Post $post)
     {
-        return response()->json([
-            'message' => "Post s ID $id bol zmazany"
+        $validated = $request->validate([
+            'title' => 'sometimes|required|string|max:255',
+            'slug' => [
+                'sometimes',
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('posts', 'slug')->ignore($post->id),
+            ],
+            'content' => 'sometimes|required|string',
+            'image_path' => 'nullable|string|max:255',
+            'author_id' => 'sometimes|required|exists:users,id',
+            'is_published' => 'sometimes|required|boolean',
+            'published_at' => 'nullable|date',
+            'categories' => 'nullable|array',
+            'categories.*' => 'exists:categories,id',
         ]);
 
+        $post->update([
+            'title' => $validated['title'] ?? $post->title,
+            'slug' => $validated['slug'] ?? $post->slug,
+            'content' => $validated['content'] ?? $post->content,
+            'image_path' => array_key_exists('image_path', $validated) ? $validated['image_path'] : $post->image_path,
+            'author_id' => $validated['author_id'] ?? $post->author_id,
+            'is_published' => $validated['is_published'] ?? $post->is_published,
+            'published_at' => array_key_exists('published_at', $validated) ? $validated['published_at'] : $post->published_at,
+        ]);
+
+        if (array_key_exists('categories', $validated)) {
+            $post->categories()->sync($validated['categories'] ?? []);
+        }
+
+        return response()->json(
+            $post->load(['author', 'categories'])
+        );
+    }
+
+    public function destroy(Post $post)
+    {
+        $post->delete();
+
+        return response()->json([
+            'message' => 'Post deleted successfully.'
+        ]);
     }
 }
