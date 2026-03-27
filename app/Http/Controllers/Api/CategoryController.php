@@ -7,7 +7,7 @@ use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
-class CategoryController extends Controller
+class CategoryController
 {
     public function index()
     {
@@ -63,6 +63,9 @@ class CategoryController extends Controller
 
         return response()->json([
             'message' => 'Category deleted successfully.'
-        ]);
+        ], 204);
     }
+
+
+
 }

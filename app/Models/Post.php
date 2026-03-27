@@ -12,14 +12,6 @@ class Post extends Model
     protected $fillable = [
         'title', 'slug', 'content', 'image_path', 'author_id', 'is_published', 'published_at'
     ];
-
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
-    }
     
     // Vzťah k autorovi (1:N - článok patrí používateľovi)
     public function author()

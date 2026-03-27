@@ -7,7 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
-class UserController extends Controller
+class UserController 
 {
     public function index()
     {
@@ -25,13 +25,10 @@ class UserController extends Controller
             'password' => 'required|string|min:6',
             'role' => 'nullable|string|in:admin,editor,author',
         ]);
-
-        $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => $validated['password'],
-            'role' => $validated['role'] ?? 'author',
-        ]);
+        $user = User::create(array_merge(
+            $validated, 
+            ['role' => $validated['role'] ?? 'author']
+        ));
 
         return response()->json($user, 201);
     }
@@ -80,6 +77,6 @@ class UserController extends Controller
 
         return response()->json([
             'message' => 'User deleted successfully.'
-        ]);
+        ], 204);
     }
 }
