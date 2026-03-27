@@ -37,8 +37,6 @@ class PostController
             $post = Post::create($validated);
 
             if (!empty($validated['categories'])) {
-
-    
                 $post->categories()->sync($validated['categories']);
             }
 
