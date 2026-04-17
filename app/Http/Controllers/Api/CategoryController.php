@@ -11,7 +11,7 @@ class CategoryController
 {
     public function index()
     {
-       
+        //created_at DESC
         return response()->json(Category::latest()->get());
     }
 

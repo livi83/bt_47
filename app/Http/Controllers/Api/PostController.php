@@ -25,13 +25,13 @@ class PostController
             'slug'         => 'required|string|max:255|unique:posts,slug',
             'content'      => 'required|string',
             'image_path'   => 'nullable|string|max:255',
-            'author_id'    => 'required|exists:users,id',
             'is_published' => 'boolean', // stačí boolean
             'published_at' => 'nullable|date',
             'categories'   => 'nullable|array',
             'categories.*' => 'exists:categories,id',
         ]);
 
+        $validated['author_id'] = $request->user()->id;
         
         $post = DB::transaction(function () use ($validated) {
             $post = Post::create($validated);
@@ -63,13 +63,14 @@ class PostController
             ],
             'content'      => 'sometimes|required|string',
             'image_path'   => 'nullable|string|max:255',
-            'author_id'    => 'sometimes|required|exists:users,id',
             'is_published' => 'sometimes|required|boolean',
             'published_at' => 'nullable|date',
             'categories'   => 'nullable|array',
             'categories.*' => 'exists:categories,id',
         ]);
 
+        $validated['author_id'] = $request->user()->id;
+        
         DB::transaction(function () use ($validated, $post, $request) {
             $post->update($validated);
 
