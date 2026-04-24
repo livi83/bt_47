@@ -3,18 +3,18 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
-class UserController 
+class UserController
 {
     public function index()
     {
-        // created_at DESC
-        $users = User::with('posts')->latest()->get();
+        $users = User::withCount('posts')->latest()->get();
 
-        return response()->json($users);
+        return UserResource::collection($users);
     }
 
     public function store(Request $request)
@@ -25,18 +25,21 @@ class UserController
             'password' => 'required|string|min:6',
             'role' => 'nullable|string|in:admin,editor,author',
         ]);
+
         $user = User::create(array_merge(
-            $validated, 
+            $validated,
             ['role' => $validated['role'] ?? 'author']
         ));
 
-        return response()->json($user, 201);
+        return (new UserResource($user->loadCount('posts')))
+            ->response()
+            ->setStatusCode(201);
     }
 
     public function show(User $user)
     {
-        return response()->json(
-            $user->load('posts')
+        return new UserResource(
+            $user->loadCount('posts')
         );
     }
 
@@ -49,11 +52,6 @@ class UserController
                 'required',
                 'email',
                 'max:255',
-                /*
-                    SELECT * FROM users 
-                    WHERE email = 'test@example.com' 
-                    AND id != 1
-                */
                 Rule::unique('users', 'email')->ignore($user->id),
             ],
             'password' => 'nullable|string|min:6',
@@ -68,15 +66,15 @@ class UserController
 
         $user->update($data);
 
-        return response()->json($user);
+        return new UserResource(
+            $user->fresh()->loadCount('posts')
+        );
     }
 
     public function destroy(User $user)
     {
         $user->delete();
-
-        return response()->json([
-            'message' => 'User deleted successfully.'
-        ], 204);
+        // 204
+        return response()->noContent();
     }
 }

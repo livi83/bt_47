@@ -24,4 +24,9 @@ class Post extends Model
     {
         return $this->belongsToMany(Category::class);
     }
+    
+    protected $casts = [
+        'published_at' => 'datetime',
+        'is_published' => 'boolean',
+    ];
 }

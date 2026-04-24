@@ -1,17 +1,38 @@
 <?php
+
 namespace App\Policies;
+
 use App\Models\Post;
 use App\Models\User;
 
 class PostPolicy
 {
+    public function create(User $user): bool
+    {
+        return in_array($user->role, ['author', 'editor', 'admin']);
+    }
+
     public function update(User $user, Post $post): bool
     {
-        return $user->id === $post->author_id;
+        return
+            $user->role === 'admin' ||
+            $user->role === 'editor' ||
+            $user->id === $post->author_id;
     }
 
     public function delete(User $user, Post $post): bool
     {
-        return $user->id === $post->author_id || $user->role === 'admin';
+        return
+            $user->role === 'admin' ||
+            $user->role === 'editor' ||
+            $user->id === $post->author_id;
+    }
+
+    public function view(User $user, Post $post): bool
+    {
+        return
+            $user->role === 'admin' ||
+            $user->role === 'editor' ||
+            $user->id === $post->author_id;
     }
 }

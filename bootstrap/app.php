@@ -14,7 +14,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     //middleware konfiguracia
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->alias([
+            'role' => \App\Http\Middleware\RoleMiddleware::class,
+        ]);
     })
     //konfiguracia vynimiek
     ->withExceptions(function (Exceptions $exceptions): void {

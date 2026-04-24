@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\CategoryResource;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -11,8 +12,9 @@ class CategoryController
 {
     public function index()
     {
-        //created_at DESC
-        return response()->json(Category::latest()->get());
+        return CategoryResource::collection(
+            Category::latest()->get()
+        );
     }
 
     public function store(Request $request)
@@ -24,13 +26,14 @@ class CategoryController
 
         $category = Category::create($validated);
 
-        return response()->json($category, 201);
+        return (new CategoryResource($category))
+            ->response()
+            ->setStatusCode(201);
     }
 
     public function show(Category $category)
     {
-        //$category = Category::findorFail($id);
-        return response()->json($category);
+        return new CategoryResource($category);
     }
 
     public function update(Request $request, Category $category)
@@ -54,18 +57,13 @@ class CategoryController
 
         $category->update($validated);
 
-        return response()->json($category);
+        return new CategoryResource($category);
     }
 
     public function destroy(Category $category)
     {
         $category->delete();
 
-        return response()->json([
-            'message' => 'Category deleted successfully.'
-        ], 204);
+        return response()->noContent();
     }
-
-
-
 }
